@@ -16,12 +16,36 @@ export const EMOJI: Record<string, string> = {
   horse: "🐴",
 };
 
-export const CURRENT_USER: User = {
-  id: "u-1",
-  name: "Dr. Sophie Martin",
-  role: "vet",
-  initials: "SM",
-  email: "s.martin@clinique-vetcopilot.fr",
+export const DEMO_PROFILES: User[] = [
+  {
+    id: "u-vet",
+    name: "Dr. Sophie Martin",
+    role: "vet",
+    initials: "SM",
+    email: "s.martin@clinique-vetcopilot.fr",
+  },
+  {
+    id: "u-asv",
+    name: "Julie Lambert",
+    role: "asv",
+    initials: "JL",
+    email: "j.lambert@clinique-vetcopilot.fr",
+  },
+  {
+    id: "u-admin",
+    name: "Admin Clinique",
+    role: "admin",
+    initials: "AC",
+    email: "admin@clinique-vetcopilot.fr",
+  },
+];
+
+export const CURRENT_USER: User = DEMO_PROFILES[0];
+
+export const ROLE_LABEL: Record<User["role"], string> = {
+  vet: "Vétérinaire",
+  asv: "Auxiliaire (ASV)",
+  admin: "Admin clinique",
 };
 
 export const CLINIC_NAME = "Clinique Vétérinaire des Trois Chênes";

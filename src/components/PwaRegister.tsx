@@ -4,18 +4,16 @@ import { useEffect } from "react";
 
 export function PwaRegister() {
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production") return;
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
-    const handler = () => {
-      navigator.serviceWorker
-        .register("/sw.js", { scope: "/" })
-        .catch((err) => {
-          console.warn("[VetCopilot] SW registration failed:", err);
-        });
-    };
-    if (document.readyState === "complete") handler();
-    else window.addEventListener("load", handler);
-    return () => window.removeEventListener("load", handler);
+
+    // Register sw.js (which is now a kill-switch). This ensures users who
+    // installed the previous caching SW receive the new one, which then
+    // unregisters itself. New users won't get any SW.
+    navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .catch(() => {
+        // Silently ignore — PWA installability still works via manifest.
+      });
   }, []);
   return null;
 }

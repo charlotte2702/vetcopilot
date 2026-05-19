@@ -1,26 +1,31 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { Role } from "@/lib/types";
+import { DEMO_PROFILES, ROLE_LABEL } from "@/lib/mock-data";
+import type { User } from "@/lib/types";
 
-const ROLES: { value: Role; label: string; desc: string }[] = [
-  { value: "vet", label: "Vétérinaire", desc: "Accès complet aux dossiers et au diagnostic" },
-  { value: "asv", label: "Auxiliaire (ASV)", desc: "Planning, accueil et gestion patients" },
-  { value: "admin", label: "Admin clinique", desc: "Gestion équipe, facturation et stats" },
-];
+const STORAGE_KEY = "vc-profile-id";
+
+function go(profile: User) {
+  try {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEY, profile.id);
+    }
+  } catch {
+    // ignore storage errors (privacy mode, etc.)
+  }
+  // Full page navigation — bypasses Next.js RSC fetch so it works even
+  // if a stale service worker is intercepting requests.
+  window.location.href = "/dashboard";
+}
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [role, setRole] = useState<Role>("vet");
   const [email, setEmail] = useState("s.martin@clinique-vetcopilot.fr");
   const [password, setPassword] = useState("demo");
-  const [loading, setLoading] = useState(false);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setTimeout(() => router.push("/dashboard"), 700);
+    go(DEMO_PROFILES[0]);
   };
 
   return (
@@ -79,20 +84,62 @@ export default function LoginPage() {
       </div>
 
       {/* Login card */}
-      <div className="flex w-full items-center justify-center bg-transparent px-4 py-10 lg:w-[480px] lg:px-10">
+      <div className="flex w-full items-center justify-center px-4 py-10 lg:w-[480px] lg:px-10">
         <div
-          className="w-full max-w-sm rounded-[28px] p-8 shadow-[0_20px_60px_rgba(0,0,0,.4)]"
+          className="w-full max-w-sm rounded-[28px] p-7 shadow-[0_20px_60px_rgba(0,0,0,.4)]"
           style={{
             background: "rgba(255,255,255,.96)",
             backdropFilter: "blur(20px)",
           }}
         >
           <h2 className="mb-1 font-display text-2xl text-[#0B1D34]">Connexion</h2>
-          <p className="mb-6 text-sm text-[#8C98A6]">
-            Bienvenue. Sélectionnez votre rôle pour continuer.
+          <p className="mb-5 text-sm text-[#8C98A6]">
+            Mode démo — choisissez un profil pour commencer.
           </p>
 
-          <form onSubmit={submit} className="space-y-4">
+          {/* Quick role buttons */}
+          <div className="mb-5 space-y-2">
+            {DEMO_PROFILES.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => go(p)}
+                className="group flex w-full items-center gap-3 rounded-xl border-[1.5px] border-[#E9ECF1] bg-white px-3 py-2.5 text-left transition-all hover:-translate-y-px hover:border-[#2BA08F] hover:shadow-[0_4px_14px_rgba(43,160,143,0.18)]"
+              >
+                <div
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[0.82rem] font-bold text-white"
+                  style={{
+                    background:
+                      p.role === "vet"
+                        ? "linear-gradient(135deg,#2BA08F,#249582)"
+                        : p.role === "asv"
+                          ? "linear-gradient(135deg,#C8A45C,#d4b06a)"
+                          : "linear-gradient(135deg,#0B1D34,#122A44)",
+                  }}
+                >
+                  {p.initials}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[0.88rem] font-semibold text-[#0B1D34]">
+                    {p.name}
+                  </div>
+                  <div className="text-[0.72rem] text-[#8C98A6]">{ROLE_LABEL[p.role]}</div>
+                </div>
+                <span className="text-[#2BA08F] opacity-0 transition-opacity group-hover:opacity-100">
+                  →
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="relative mb-5 text-center">
+            <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 border-t border-[#E9ECF1]" />
+            <span className="relative bg-white px-3 text-[0.7rem] font-semibold uppercase tracking-wider text-[#8C98A6]">
+              ou
+            </span>
+          </div>
+
+          <form onSubmit={submit} className="space-y-3">
             <div>
               <label className="vc-label">Email professionnel</label>
               <input
@@ -113,49 +160,14 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <div>
-              <label className="vc-label">Rôle</label>
-              <div className="space-y-2">
-                {ROLES.map((r) => (
-                  <button
-                    key={r.value}
-                    type="button"
-                    onClick={() => setRole(r.value)}
-                    className={`flex w-full items-start gap-3 rounded-xl border-[1.5px] px-3 py-2.5 text-left transition-all ${
-                      role === r.value
-                        ? "border-[#2BA08F] bg-[rgba(43,160,143,0.06)]"
-                        : "border-[#E9ECF1] bg-white hover:border-[#2BA08F]/50"
-                    }`}
-                  >
-                    <div
-                      className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                        role === r.value
-                          ? "border-[#2BA08F] bg-[#2BA08F]"
-                          : "border-[#8C98A6]"
-                      }`}
-                    >
-                      {role === r.value && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold text-[#0B1D34]">{r.label}</div>
-                      <div className="text-[0.72rem] text-[#8C98A6]">{r.desc}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             <button
               type="submit"
-              disabled={loading}
-              className="vc-btn vc-btn-primary vc-btn-lg w-full justify-center disabled:opacity-60"
+              className="vc-btn vc-btn-primary vc-btn-lg w-full justify-center"
             >
-              {loading ? "Connexion…" : "Se connecter"}
+              Sign In
             </button>
-            <p className="text-center text-[0.72rem] text-[#8C98A6]">
-              Démo — saisie automatique pré-remplie, cliquez pour entrer.
+            <p className="text-center text-[0.7rem] text-[#8C98A6]">
+              Démo statique — aucune authentification réelle.
             </p>
           </form>
         </div>

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { CURRENT_USER } from "@/lib/mock-data";
+import { useState, useSyncExternalStore } from "react";
+import { CURRENT_USER, DEMO_PROFILES, ROLE_LABEL } from "@/lib/mock-data";
+import type { User } from "@/lib/types";
 import {
   AlertIcon,
   BellIcon,
@@ -103,7 +104,15 @@ function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string;
   );
 }
 
-function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+function Sidebar({
+  open,
+  onClose,
+  profile,
+}: {
+  open: boolean;
+  onClose: () => void;
+  profile: User;
+}) {
   const pathname = usePathname();
   return (
     <>
@@ -170,12 +179,12 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
             className="relative flex h-9 w-9 items-center justify-center rounded-full text-[0.78rem] font-bold text-white"
             style={{ background: "linear-gradient(135deg,#2BA08F,#C8A45C)" }}
           >
-            {CURRENT_USER.initials}
+            {profile.initials}
             <span className="absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0B1D34] bg-[#2ecc71]" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[0.82rem] font-semibold text-white">{CURRENT_USER.name}</div>
-            <div className="text-[0.65rem] text-white/50">Vétérinaire</div>
+            <div className="truncate text-[0.82rem] font-semibold text-white">{profile.name}</div>
+            <div className="text-[0.65rem] text-white/50">{ROLE_LABEL[profile.role]}</div>
           </div>
           <Link
             href="/login"
@@ -259,6 +268,30 @@ function MobileNav() {
   );
 }
 
+const PROFILE_KEY = "vc-profile-id";
+
+function readProfileId(): string | null {
+  try {
+    return window.localStorage.getItem(PROFILE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function subscribeProfile(cb: () => void): () => void {
+  window.addEventListener("storage", cb);
+  return () => window.removeEventListener("storage", cb);
+}
+
+function useCurrentProfile(): User {
+  const profileId = useSyncExternalStore(
+    subscribeProfile,
+    readProfileId,
+    () => null,
+  );
+  return DEMO_PROFILES.find((p) => p.id === profileId) ?? CURRENT_USER;
+}
+
 export function AppShell({
   title,
   subtitle,
@@ -271,9 +304,10 @@ export function AppShell({
   fab?: React.ReactNode;
 }) {
   const [sbOpen, setSbOpen] = useState(false);
+  const profile = useCurrentProfile();
   return (
     <div className="flex min-h-screen">
-      <Sidebar open={sbOpen} onClose={() => setSbOpen(false)} />
+      <Sidebar open={sbOpen} onClose={() => setSbOpen(false)} profile={profile} />
       <div className="flex min-h-screen flex-1 flex-col lg:ml-[260px]">
         <Header title={title} subtitle={subtitle} onMenu={() => setSbOpen(true)} />
         <main className="flex-1 px-4 pt-5 pb-24 md:px-7 md:pb-12 vc-fade-in">{children}</main>
