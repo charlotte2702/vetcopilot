@@ -9,6 +9,7 @@ import {
   MicIcon,
   SparkleIcon,
 } from "@/components/icons";
+import { ImageAnalysisCard } from "@/components/ImageAnalysisCard";
 import { ANIMALS, DIAGNOSTIC_DEMO, EMOJI } from "@/lib/mock-data";
 import type { DiagnosticResult } from "@/lib/types";
 
@@ -179,6 +180,11 @@ export default function DiagnosticPage() {
           </div>
         </div>
       )}
+
+      {/* Image analysis section */}
+      <div className="mt-5">
+        <ImageAnalysisCard />
+      </div>
 
       {results && !analyzing && (
         <div className="mt-5 space-y-4">

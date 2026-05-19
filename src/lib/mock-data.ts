@@ -2,6 +2,8 @@ import type {
   Animal,
   Appointment,
   DiagnosticResult,
+  ImageAnalysisResult,
+  ImageCategory,
   Notification,
   SoapReport,
   User,
@@ -268,6 +270,130 @@ export const SOAP_DEMO: SoapReport = {
   plan: "1. Bilan sanguin complet + Spec cPL réalisé (résultats en attente)\n2. Échographie abdominale prévue à 14h\n3. Mise en place perfusion Ringer Lactate 4mL/kg/h\n4. Maropitant 1 mg/kg SC\n5. Mise à jeun strict 24h, réévaluation demain matin\n6. Recontrôle clinique à 18h ce jour",
   ownerSummary:
     "Bonjour M. Dupont,\n\nRex a été examiné aujourd'hui pour ses vomissements et sa perte d'appétit. Il est légèrement déshydraté mais reste stable. Nous avons réalisé une prise de sang et prévoyons une échographie cet après-midi pour identifier précisément la cause.\n\nIl reste hospitalisé sous perfusion et nous évitons toute alimentation pendant 24h. Nous vous tenons informé dès que nous avons les premiers résultats.\n\nCordialement,\nDr. Sophie Martin",
+};
+
+export const IMAGE_CATEGORIES: { value: ImageCategory; label: string; icon: string }[] = [
+  { value: "radio-thorax", label: "Radio thoracique", icon: "🫁" },
+  { value: "radio-abdo", label: "Radio abdominale", icon: "🩻" },
+  { value: "dermato", label: "Dermatologie", icon: "🔬" },
+  { value: "echo", label: "Échographie", icon: "📡" },
+  { value: "other", label: "Autre", icon: "📷" },
+];
+
+export const IMAGE_ANALYSIS_DEMOS: Record<ImageCategory, ImageAnalysisResult> = {
+  "radio-thorax": {
+    examType: "Radio thoracique — incidence latérale droite",
+    examIcon: "🫁",
+    confidence: 94,
+    findings: [
+      "Opacité focale arrondie d'environ 3 cm dans le lobe pulmonaire moyen droit",
+      "Silhouette cardiaque dans les limites de la normale (VHS ≈ 9.8)",
+      "Pas d'épanchement pleural visible",
+      "Bonne aération des autres champs pulmonaires",
+      "Trame bronchovasculaire normale pour l'âge",
+    ],
+    hypotheses: [
+      { name: "Pneumonie bactérienne focale (foyer infectieux)", probability: 58, level: "hi" },
+      { name: "Néoplasie pulmonaire primaire", probability: 27, level: "md" },
+      { name: "Granulome inflammatoire / fongique", probability: 15, level: "lo" },
+    ],
+    recommendations: [
+      "Bilan sanguin : NFS, biochimie, CRP",
+      "Ponction écho-guidée de la lésion si accessible (cytologie)",
+      "Antibiothérapie empirique en attente (Amoxicilline-Clavulanate)",
+      "Recontrôle radiographique à 10-14 jours pour suivi évolution",
+      "Référer à un radiologue vétérinaire pour second avis si doute persistant",
+    ],
+  },
+  "radio-abdo": {
+    examType: "Radio abdominale — incidence latérale",
+    examIcon: "🩻",
+    confidence: 89,
+    findings: [
+      "Présence d'un corps étranger radio-opaque en région gastrique distale",
+      "Distension gazeuse modérée des anses intestinales en amont",
+      "Silhouette hépatique normale",
+      "Pas de pneumopéritoine visible (pas de perforation décelable)",
+    ],
+    hypotheses: [
+      { name: "Corps étranger gastrique (objet ingéré)", probability: 82, level: "hi" },
+      { name: "Iléus mécanique débutant", probability: 14, level: "md" },
+      { name: "Pneumatose gastrique", probability: 4, level: "lo" },
+    ],
+    recommendations: [
+      "Endoscopie en urgence pour extraction si accessible",
+      "Bilan préopératoire complet (NFS, biochimie, hémostase)",
+      "Mise à jeun stricte, perfusion Ringer Lactate",
+      "Anti-émétique (Maropitant) en attente",
+      "Chirurgie envisagée si endoscopie non réalisable sous 12h",
+    ],
+  },
+  dermato: {
+    examType: "Dermatologie — lésion alopécique",
+    examIcon: "🔬",
+    confidence: 91,
+    findings: [
+      "Lésion alopécique circulaire d'environ 2 cm, bordure érythémateuse",
+      "Présence de croûtes fines au centre, peau légèrement squameuse",
+      "Pas de signe de surinfection bactérienne franche",
+      "Lésion unique, localisation périoculaire droite",
+    ],
+    hypotheses: [
+      { name: "Dermatophytose (teigne — Microsporum canis)", probability: 64, level: "hi" },
+      { name: "Démodécie localisée", probability: 22, level: "md" },
+      { name: "Dermatite allergique focale", probability: 14, level: "lo" },
+    ],
+    recommendations: [
+      "Lampe de Wood pour recherche de fluorescence",
+      "Raclage cutané pour examen parasitaire direct",
+      "Culture fongique (DTM) sur 14 jours",
+      "Isoler l'animal si contact avec enfants ou immunodéprimés",
+      "Traitement antifongique topique (Énilconazole) en attente des résultats",
+    ],
+  },
+  echo: {
+    examType: "Échographie abdominale — coupe sagittale",
+    examIcon: "📡",
+    confidence: 87,
+    findings: [
+      "Épaississement de la paroi gastrique (>6 mm), perte de stratification focale",
+      "Contenu hétérogène avec zones hypoéchogènes",
+      "Ganglion mésentérique légèrement augmenté (12 mm)",
+      "Pancréas et foie d'échogénicité normale",
+      "Pas d'épanchement abdominal",
+    ],
+    hypotheses: [
+      { name: "Gastrite chronique sévère", probability: 48, level: "hi" },
+      { name: "Néoplasie gastrique (lymphome / adénocarcinome)", probability: 38, level: "md" },
+      { name: "Inflammation granulomateuse", probability: 14, level: "lo" },
+    ],
+    recommendations: [
+      "Endoscopie haute avec biopsies multiples (gastrique + duodénales)",
+      "Cytoponction du ganglion mésentérique si accessible",
+      "Bilan sanguin complet + ionogramme + cobalamine/folates",
+      "Mise en place d'un traitement gastroprotecteur (Oméprazole)",
+      "Reprogrammer une écho de contrôle dans 4 semaines",
+    ],
+  },
+  other: {
+    examType: "Image clinique générique",
+    examIcon: "📷",
+    confidence: 72,
+    findings: [
+      "Image cliniquement exploitable",
+      "Cadrage et exposition corrects pour l'analyse",
+      "Aucune anomalie évidente détectée automatiquement",
+    ],
+    hypotheses: [
+      { name: "Aspect compatible avec la normale", probability: 60, level: "md" },
+      { name: "Anomalie à confirmer cliniquement", probability: 40, level: "lo" },
+    ],
+    recommendations: [
+      "Examen clinique complet en complément",
+      "Préciser le contexte clinique pour affiner l'analyse",
+      "Catégoriser l'image (radio, dermato, écho…) pour une analyse spécialisée",
+    ],
+  },
 };
 
 export function findAnimalById(id: number): Animal | undefined {

@@ -93,6 +93,35 @@ export interface DiagnosticResult {
   hypotheses: DiagnosticHypothesis[];
 }
 
+export interface ImageHypothesis {
+  name: string;
+  probability: number;
+  level: "hi" | "md" | "lo";
+}
+
+export interface ImageAnalysisResult {
+  examType: string;
+  examIcon: string;
+  confidence: number;
+  findings: string[];
+  hypotheses: ImageHypothesis[];
+  recommendations: string[];
+}
+
+export type ImageCategory =
+  | "radio-thorax"
+  | "radio-abdo"
+  | "dermato"
+  | "echo"
+  | "other";
+
+export interface UploadedImage {
+  id: string;
+  url: string;
+  name: string;
+  category: ImageCategory;
+}
+
 export interface SoapReport {
   id: number;
   animalName: string;
