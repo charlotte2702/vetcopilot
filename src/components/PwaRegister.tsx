@@ -6,14 +6,25 @@ export function PwaRegister() {
   useEffect(() => {
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
 
-    // Register sw.js (which is now a kill-switch). This ensures users who
-    // installed the previous caching SW receive the new one, which then
-    // unregisters itself. New users won't get any SW.
+    // First, register the kill-switch SW (clears caches + self-unregisters)
+    // so users carrying an older caching SW from a previous deploy get cleaned up.
     navigator.serviceWorker
       .register("/sw.js", { scope: "/" })
-      .catch(() => {
-        // Silently ignore — PWA installability still works via manifest.
-      });
+      .catch(() => {});
+
+    // As an extra safety net, also forcibly unregister any leftover SWs
+    // that didn't go through the kill-switch flow.
+    navigator.serviceWorker
+      .getRegistrations()
+      .then((regs) => {
+        regs.forEach((r) => {
+          // Only unregister if scope is ours.
+          if (r.scope.includes(window.location.origin)) {
+            r.unregister().catch(() => {});
+          }
+        });
+      })
+      .catch(() => {});
   }, []);
   return null;
 }

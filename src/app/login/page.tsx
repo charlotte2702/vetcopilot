@@ -1,33 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { DEMO_PROFILES, ROLE_LABEL } from "@/lib/mock-data";
 import type { User } from "@/lib/types";
 
 const STORAGE_KEY = "vc-profile-id";
 
-function go(profile: User) {
+function rememberProfile(profile: User) {
   try {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(STORAGE_KEY, profile.id);
     }
   } catch {
-    // ignore storage errors (privacy mode, etc.)
+    // ignore storage errors (privacy mode, quota, etc.)
   }
-  // Full page navigation — bypasses Next.js RSC fetch so it works even
-  // if a stale service worker is intercepting requests.
-  window.location.href = "/dashboard";
 }
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("s.martin@clinique-vetcopilot.fr");
-  const [password, setPassword] = useState("demo");
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    go(DEMO_PROFILES[0]);
-  };
-
   return (
     <div
       className="flex min-h-screen flex-col overflow-hidden lg:flex-row"
@@ -97,13 +86,14 @@ export default function LoginPage() {
             Mode démo — choisissez un profil pour commencer.
           </p>
 
-          {/* Quick role buttons */}
+          {/* Quick role buttons — anchor tags so they work even without JS hydration */}
           <div className="mb-5 space-y-2">
             {DEMO_PROFILES.map((p) => (
-              <button
+              <Link
                 key={p.id}
-                type="button"
-                onClick={() => go(p)}
+                href={"/dashboard" as never}
+                prefetch={false}
+                onClick={() => rememberProfile(p)}
                 className="group flex w-full items-center gap-3 rounded-xl border-[1.5px] border-[#E9ECF1] bg-white px-3 py-2.5 text-left transition-all hover:-translate-y-px hover:border-[#2BA08F] hover:shadow-[0_4px_14px_rgba(43,160,143,0.18)]"
               >
                 <div
@@ -128,7 +118,7 @@ export default function LoginPage() {
                 <span className="text-[#2BA08F] opacity-0 transition-opacity group-hover:opacity-100">
                   →
                 </span>
-              </button>
+              </Link>
             ))}
           </div>
 
@@ -139,37 +129,45 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <form onSubmit={submit} className="space-y-3">
+          {/* Plain inputs (decorative — accept anything) */}
+          <div className="space-y-3">
             <div>
-              <label className="vc-label">Email professionnel</label>
+              <label className="vc-label" htmlFor="login-email">
+                Email professionnel
+              </label>
               <input
+                id="login-email"
                 type="email"
                 className="vc-input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                defaultValue="s.martin@clinique-vetcopilot.fr"
+                autoComplete="off"
               />
             </div>
             <div>
-              <label className="vc-label">Mot de passe</label>
+              <label className="vc-label" htmlFor="login-pw">
+                Mot de passe
+              </label>
               <input
+                id="login-pw"
                 type="password"
                 className="vc-input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                defaultValue="demo"
+                autoComplete="off"
               />
             </div>
-            <button
-              type="submit"
+            {/* Sign In as a plain anchor — guaranteed to navigate even without JS */}
+            <Link
+              href={"/dashboard" as never}
+              prefetch={false}
+              onClick={() => rememberProfile(DEMO_PROFILES[0])}
               className="vc-btn vc-btn-primary vc-btn-lg w-full justify-center"
             >
               Sign In
-            </button>
+            </Link>
             <p className="text-center text-[0.7rem] text-[#8C98A6]">
               Démo statique — aucune authentification réelle.
             </p>
-          </form>
+          </div>
         </div>
       </div>
     </div>
